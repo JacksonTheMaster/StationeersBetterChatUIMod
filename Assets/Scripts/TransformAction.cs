@@ -19,6 +19,9 @@ namespace SaveTransformer.Mod
         public TextMeshProUGUI YSliderValue; // STRING value of the YOffset eg "100"
         public TextMeshProUGUI ZSliderValue; // STRING value of the ZOffset eg "-1040"
         [SerializeField] private TextMeshProUGUI logOutput; // Placeholder for future UI logging
+        [SerializeField] private CanvasGroup[] beforeTransformState;
+        [SerializeField] private CanvasGroup[] whileTransformState;
+        [SerializeField] private CanvasGroup[] afterTransformState;
 
         // Preset configurations mirroring web UI defaults and placeholders for Complex/Experimental
         private readonly Dictionary<string, (string[] elements, string[] types, string[] prefabs, bool[] logging)> _presets = new()
@@ -81,9 +84,35 @@ namespace SaveTransformer.Mod
                 logOutput.fontSize = 18;
                 logOutput.text = "Transformation Started";
                 StartCoroutine(SendAPIRequestAndAwaitResponse());
+
+                foreach (CanvasGroup group in beforeTransformState)
+                {
+                    if (group != null)
+                    {
+                        group.alpha = 0f; // Make invisible
+                        group.interactable = false; // Disable interactions
+                        group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                    }
+                }
+
+                foreach (CanvasGroup group in whileTransformState)
+                {
+                    if (group != null)
+                    {
+                        group.alpha = 1f; // Make visible
+                        group.interactable = true; // Enable interactions
+                        group.blocksRaycasts = true; // Enable raycasts
+                    }
+                }
+
+
             }
         }
 
+        public void ToggleVisibilty()
+        {
+            
+        }
         public string FindSaveFile()
         {
             if (string.IsNullOrEmpty(savegameSelection?.SelectedSavegameFolderPath))
@@ -249,6 +278,26 @@ namespace SaveTransformer.Mod
 
                     if (saveSuccess)
                     {
+                        foreach (CanvasGroup group in whileTransformState)
+                        {
+                            if (group != null)
+                            {
+                                group.alpha = 0f; // Make invisible
+                                group.interactable = false; // Disable interactions
+                                group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                            }
+                        }
+
+                        foreach (CanvasGroup group in afterTransformState)
+                        {
+                            if (group != null)
+                            {
+                                group.alpha = 1f; // Make visible
+                                group.interactable = true; // Enable interactions
+                                group.blocksRaycasts = true; // Enable raycasts
+                            }
+                        }
+
                         Debug.Log($"Transformed file saved to: {savePath}");
                         logOutput.fontSize = 8;
 
