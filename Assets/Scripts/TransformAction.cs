@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace SaveTransformer.Mod
 {
-    public class TransformAction : MonoBehaviour
+    public class Interaction : MonoBehaviour
     {
         public SavegameSelection savegameSelection; // save folder name, eg Europa3 in SelectedSavegame, and path to save folder, eg C:\Users\JXSN\Documents\My Games\Stationeers\saves\Europa3 in SelectedSavegameFolderPath
         public WorldTypeSelection worldTypeSelection; // world type to migrate to, eg Lunar Mare
@@ -67,7 +67,7 @@ namespace SaveTransformer.Mod
             }
         };
 
-        public void TriggerTransform()
+        public void TriggerTransformAction()
         {
             if (savegameSelection != null)
             {
@@ -109,9 +109,27 @@ namespace SaveTransformer.Mod
             }
         }
 
-        public void ToggleVisibilty()
+        public void TriggerBackAction()
         {
-            
+            foreach (CanvasGroup group in afterTransformState)
+            {
+                if (group != null)
+                {
+                    group.alpha = 0f; // Make invisible
+                    group.interactable = false; // Disable interactions
+                    group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                }
+            }
+
+            foreach (CanvasGroup group in beforeTransformState)
+            {
+                if (group != null)
+                {
+                    group.alpha = 1f; // Make visible
+                    group.interactable = true; // Enable interactions
+                    group.blocksRaycasts = true; // Enable raycasts
+                }
+            }
         }
         public string FindSaveFile()
         {
@@ -189,9 +207,10 @@ namespace SaveTransformer.Mod
             byte[] fileBytes = File.ReadAllBytes(filePath);
             form.AddBinaryData("oldSaveFile", fileBytes, Path.GetFileName(filePath));
 
-            using (UnityWebRequest request = UnityWebRequest.Post("https://sst.jxsn.dev/transform", form))
+            using (UnityWebRequest request = UnityWebRequest.Post("http://localhost:8080/transform", form))
             {
-                Debug.Log("Sending transformation request to https://sst.jxsn.dev/transform");
+                request.SetRequestHeader("User-Agent", "SST-Unity/1.0");
+                Debug.Log("Sending transformation request to http://localhost:8080/transform");
                 yield return request.SendWebRequest();
 
                 if (request.result != UnityWebRequest.Result.Success)
@@ -238,8 +257,9 @@ namespace SaveTransformer.Mod
                 Debug.Log("Transformation successful. Logs:\n" + response.logs);
 
                 // Download the transformed file
-                using (UnityWebRequest downloadRequest = UnityWebRequest.Get("https://sst.jxsn.dev/" + response.downloadPath))
+                using (UnityWebRequest downloadRequest = UnityWebRequest.Get("http://localhost:8080/" + response.downloadPath))
                 {
+                    downloadRequest.SetRequestHeader("User-Agent", "SST-Unity/1.0");
                     yield return downloadRequest.SendWebRequest();
 
                     if (downloadRequest.result != UnityWebRequest.Result.Success)
