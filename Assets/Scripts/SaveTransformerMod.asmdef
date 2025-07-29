@@ -1,0 +1,30 @@
+{
+    "name": "SaveTransformerMod",
+    "rootNamespace": "SaveTransformer.Mod",
+    "references": [
+        "GUID:343deaaf83e0cee4ca978e7df0b80d21",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "WindowsStandalone32",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Assembly-CSharp.dll",
+        "Assembly-CSharp-firstpass.dll",
+        "StationeersMods.Interface.dll",
+        "0Harmony.dll",
+        "BepInEx.dll",
+        "RG.ImGui.Unity.dll",
+        "RG.ImGui.dll",
+        ""
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
