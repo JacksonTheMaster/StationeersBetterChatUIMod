@@ -22,6 +22,7 @@ namespace SaveTransformer.Mod
         [SerializeField] private CanvasGroup[] beforeTransformState;
         [SerializeField] private CanvasGroup[] whileTransformState;
         [SerializeField] private CanvasGroup[] afterTransformState;
+        [SerializeField] private CanvasGroup[] helpState;
 
         // Preset configurations mirroring web UI defaults and placeholders for Complex/Experimental
         private readonly Dictionary<string, (string[] elements, string[] types, string[] prefabs, bool[] logging)> _presets = new()
@@ -121,6 +122,16 @@ namespace SaveTransformer.Mod
                 }
             }
 
+            foreach (CanvasGroup group in helpState)
+            {
+                if (group != null)
+                {
+                    group.alpha = 0f; // Make invisible
+                    group.interactable = false; // Disable interactions
+                    group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                }
+            }
+
             foreach (CanvasGroup group in beforeTransformState)
             {
                 if (group != null)
@@ -130,6 +141,37 @@ namespace SaveTransformer.Mod
                     group.blocksRaycasts = true; // Enable raycasts
                 }
             }
+        }
+        public void TriggerHelpAction()
+        {
+            foreach (CanvasGroup group in beforeTransformState)
+            {
+                if (group != null)
+                {
+                    group.alpha = 0f; // Make invisible
+                    group.interactable = false; // Disable interactions
+                    group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                }
+            }
+
+            foreach (CanvasGroup group in helpState)
+            {
+                if (group != null)
+                {
+                    group.alpha = 1f; // Make visible
+                    group.interactable = true; // Enable interactions
+                    group.blocksRaycasts = true; // Enable raycasts
+                }
+            }
+        }
+        public void TriggerDiscordLinkAction()
+        {
+            Application.OpenURL("https://discord.gg/8n3vN92MyJ");
+        }
+
+        public void TriggerFaqLinkAction()
+        {
+            Application.OpenURL("https://sst.jxsn.dev");
         }
         public string FindSaveFile()
         {
