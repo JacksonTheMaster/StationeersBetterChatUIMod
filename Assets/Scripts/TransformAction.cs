@@ -1,8 +1,10 @@
 ﻿using MoonSharp.VsCodeDebugger.SDK;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using TMPro; // Required for TextMeshProUGUI
 using UnityEngine;
 using UnityEngine.Networking;
@@ -173,6 +175,47 @@ namespace SaveTransformer.Mod
         {
             Application.OpenURL("https://sst.jxsn.dev");
         }
+
+        public void TriggerLoad()
+        {
+            ExecuteCommand("load marsprod");
+        }
+
+        public static void ExecuteCommand(string command)
+        {
+            try
+            {
+
+                var commandLineType = Type.GetType("Util.Commands.CommandLine, Assembly-CSharp");
+                if (commandLineType == null)
+                {
+                    Debug.Log("CommandLine type not found in Assembly-CSharp.");
+                    return;
+                }
+
+                var processMethod = commandLineType.GetMethod("Process", new[] { typeof(string) });
+                if (processMethod == null)
+                {
+                    Debug.Log("Process(string) method not found in CommandLine.");
+                    return;
+                }
+
+                string formattedCommand = command.StartsWith("-") ? command : "-" + command;
+                processMethod.Invoke(null, new object[] { formattedCommand });
+                Debug.Log($"Successfully executed command: {command}");
+            }
+            catch (TargetInvocationException tex)
+            {
+                Debug.Log($"Error executing command '{command}': {tex.Message}");
+                if (tex.InnerException != null)
+                    Debug.Log($"Inner error: {tex.InnerException.Message}");
+            }
+            catch (Exception ex)
+            {
+                Debug.Log($"Unexpected error executing command '{command}': {ex.Message}");
+            }
+        }
+
         public string FindSaveFile()
         {
             if (string.IsNullOrEmpty(savegameSelection?.SelectedSavegameFolderPath))
@@ -363,7 +406,7 @@ namespace SaveTransformer.Mod
                         Debug.Log($"Transformed file saved to: {savePath}");
                         logOutput.fontSize = 8;
 
-                        logOutput.text = "Success!\n"+response.logs;
+                        logOutput.text = "Success!\n" + response.logs;
                     }
                 }
             }
