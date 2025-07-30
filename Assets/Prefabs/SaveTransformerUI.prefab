@@ -5734,9 +5734,9 @@ MonoBehaviour:
   savegameSelection: {fileID: 8522680770049668333}
   worldTypeSelection: {fileID: 7871472785867230573}
   transformPresetSelection: {fileID: 5644718869017363454}
-  XSliderValue: {fileID: 3208080629065064223}
-  YSliderValue: {fileID: 0}
-  ZSliderValue: {fileID: 0}
+  XSliderInput: {fileID: 6760201011311558247}
+  YSliderInput: {fileID: 3587733167033829575}
+  ZSliderInput: {fileID: 3642045241951864332}
   logOutput: {fileID: 2213147476455578020}
   beforeTransformState:
   - {fileID: 3617994971492536261}

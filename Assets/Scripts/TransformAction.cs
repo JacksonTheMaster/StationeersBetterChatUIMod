@@ -17,9 +17,9 @@ namespace SaveTransformer.Mod
         public SavegameSelection savegameSelection; // save folder name, eg Europa3 in SelectedSavegame, and path to save folder, eg C:\Users\JXSN\Documents\My Games\Stationeers\saves\Europa3 in SelectedSavegameFolderPath
         public WorldTypeSelection worldTypeSelection; // world type to migrate to, eg Lunar Mare
         public TransformPresetSelection transformPresetSelection; // Preset to simplify the "advanced options" and generally selected types to remove etc on the web ui. eg Essential, Complex, Experimental
-        public TextMeshProUGUI XSliderValue; // STRING value of the XOffset, eg "1040"
-        public TextMeshProUGUI YSliderValue; // STRING value of the YOffset eg "100"
-        public TextMeshProUGUI ZSliderValue; // STRING value of the ZOffset eg "-1040"
+        public TMP_InputField XSliderInput;
+        public TMP_InputField YSliderInput;
+        public TMP_InputField ZSliderInput; 
         private string migratedFolderName;
         [SerializeField] private TextMeshProUGUI logOutput; // Placeholder for future UI logging
         [SerializeField] private CanvasGroup[] beforeTransformState;
@@ -75,9 +75,15 @@ namespace SaveTransformer.Mod
         {
             if (savegameSelection != null)
             {
-                float xOffset = float.Parse(XSliderValue.text);
-                float yOffset = float.Parse(YSliderValue.text);
-                float zOffset = float.Parse(ZSliderValue.text);
+                // Validate and parse input values
+                if (!float.TryParse(XSliderInput.text, out float xOffset) ||
+                    !float.TryParse(YSliderInput.text, out float yOffset) ||
+                    !float.TryParse(ZSliderInput.text, out float zOffset))
+                {
+                    Debug.LogError("Invalid input: Please enter valid numeric values for X, Y, and Z offsets.");
+                    logOutput.text = "Error: Invalid numeric input for offsets.";
+                    return;
+                }
 
                 Debug.Log("Transformation request triggered");
                 Debug.Log("SavegameSelection: " + savegameSelection.SelectedSavegame);
@@ -93,9 +99,9 @@ namespace SaveTransformer.Mod
                 {
                     if (group != null)
                     {
-                        group.alpha = 0f; // Make invisible
-                        group.interactable = false; // Disable interactions
-                        group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                        group.alpha = 0f;
+                        group.interactable = false;
+                        group.blocksRaycasts = false;
                     }
                 }
 
@@ -103,13 +109,11 @@ namespace SaveTransformer.Mod
                 {
                     if (group != null)
                     {
-                        group.alpha = 1f; // Make visible
-                        group.interactable = true; // Enable interactions
-                        group.blocksRaycasts = true; // Enable raycasts
+                        group.alpha = 1f;
+                        group.interactable = true;
+                        group.blocksRaycasts = true;
                     }
                 }
-
-
             }
         }
 
@@ -283,9 +287,9 @@ namespace SaveTransformer.Mod
 
             WWWForm form = new WWWForm();
             form.AddField("worldType", worldTypeSelection.SelectedWorldType);
-            form.AddField("liftHeight", YSliderValue.text);
-            form.AddField("xOffset", XSliderValue.text);
-            form.AddField("zOffset", ZSliderValue.text);
+            form.AddField("liftHeight", YSliderInput.text);
+            form.AddField("xOffset", XSliderInput.text);
+            form.AddField("zOffset", ZSliderInput.text);
             form.AddField("logAdjustments", logging[0] ? "true" : "false");
             form.AddField("logTrackedRefIds", logging[1] ? "true" : "false");
             form.AddField("logThingSaveDataRemovals", logging[2] ? "true" : "false");
