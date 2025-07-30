@@ -315,8 +315,18 @@ namespace SaveTransformer.Mod
 
                 yield return request.SendWebRequest();
 
-                // Restore audio
+                // Fade out transform sound
+                float fadeTime = 2.0f; // Duration of fade in seconds
+                float startVolume = transformSound.volume;
+                for (float t = 0; t < fadeTime; t += Time.deltaTime)
+                {
+                    transformSound.volume = startVolume * (1 - t / fadeTime);
+                    yield return null;
+                }
                 transformSound.Stop();
+                transformSound.volume = startVolume; // Reset volume for next play
+
+                // Restore audio
                 if (menuMusic != null) menuMusic.mute = false;
 
                 if (request.result != UnityWebRequest.Result.Success)
