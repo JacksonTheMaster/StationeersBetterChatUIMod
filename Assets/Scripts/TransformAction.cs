@@ -20,6 +20,7 @@ namespace SaveTransformer.Mod
         public TextMeshProUGUI XSliderValue; // STRING value of the XOffset, eg "1040"
         public TextMeshProUGUI YSliderValue; // STRING value of the YOffset eg "100"
         public TextMeshProUGUI ZSliderValue; // STRING value of the ZOffset eg "-1040"
+        private string migratedFolderName;
         [SerializeField] private TextMeshProUGUI logOutput; // Placeholder for future UI logging
         [SerializeField] private CanvasGroup[] beforeTransformState;
         [SerializeField] private CanvasGroup[] whileTransformState;
@@ -178,7 +179,12 @@ namespace SaveTransformer.Mod
 
         public void TriggerLoad()
         {
-            ExecuteCommand("load marsprod");
+            if (string.IsNullOrEmpty(migratedFolderName))
+            {
+                Debug.LogError("No migrated folder name available. Please transform a save first.");
+                return;
+            }
+            ExecuteCommand($"load {migratedFolderName}");
         }
 
         public static void ExecuteCommand(string command)
@@ -267,7 +273,7 @@ namespace SaveTransformer.Mod
             }
 
             var (elements, types, prefabs, logging) = _presets[preset];
-            bool isSaveFile = filePath.EndsWith(".save", System.StringComparison.OrdinalIgnoreCase);
+            bool isSaveFile = filePath.EndsWith(".save", StringComparison.OrdinalIgnoreCase);
             List<string> typesToRemove = types.ToList();
             if (isSaveFile)
             {
@@ -275,7 +281,6 @@ namespace SaveTransformer.Mod
                 Debug.Log("Detected .save file. Added HumanSaveData to types to remove.");
             }
 
-            // Prepare form data
             WWWForm form = new WWWForm();
             form.AddField("worldType", worldTypeSelection.SelectedWorldType);
             form.AddField("liftHeight", YSliderValue.text);
@@ -301,13 +306,10 @@ namespace SaveTransformer.Mod
                 if (request.result != UnityWebRequest.Result.Success)
                 {
                     Debug.LogError($"API request failed: {request.error}");
-                    // Placeholder for future UI error display
                     yield break;
                 }
 
                 string responseText = request.downloadHandler.text;
-
-                // Parse the response outside of try-catch to avoid yield issues
                 TransformResponse response = null;
                 bool parseSuccess = false;
 
@@ -318,10 +320,9 @@ namespace SaveTransformer.Mod
                         response = JsonUtility.FromJson<TransformResponse>(responseText);
                         parseSuccess = true;
                     }
-                    catch (System.Exception e)
+                    catch (Exception e)
                     {
                         Debug.LogError($"Error parsing API response: {e.Message}");
-                        // Placeholder for future UI error display
                         yield break;
                     }
                 }
@@ -335,13 +336,11 @@ namespace SaveTransformer.Mod
                 if (!response.success)
                 {
                     Debug.LogError($"Transformation failed: {response.message}");
-                    // Placeholder for future UI error display
                     yield break;
                 }
 
                 Debug.Log("Transformation successful. Logs:\n" + response.logs);
 
-                // Download the transformed file
                 using (UnityWebRequest downloadRequest = UnityWebRequest.Get("http://localhost:8080/" + response.downloadPath))
                 {
                     downloadRequest.SetRequestHeader("User-Agent", "SST-Unity/1.0");
@@ -353,7 +352,6 @@ namespace SaveTransformer.Mod
                         yield break;
                     }
 
-                    // Handle file saving outside of try-catch to avoid yield issues
                     bool saveSuccess = false;
                     string savePath = "";
 
@@ -373,12 +371,14 @@ namespace SaveTransformer.Mod
                         Directory.CreateDirectory(saveFolder);
                         savePath = Path.Combine(saveFolder, "world_migrated.SAVE");
                         File.WriteAllBytes(savePath, downloadRequest.downloadHandler.data);
+
+                        // Extract just the folder name (e.g., Europa3migrated or Europa3migrated1)
+                        migratedFolderName = Path.GetFileName(saveFolder);
                         saveSuccess = true;
                     }
-                    catch (System.Exception e)
+                    catch (Exception e)
                     {
                         Debug.LogError($"Error saving transformed file: {e.Message}");
-                        // Placeholder for future UI error display
                     }
 
                     if (saveSuccess)
@@ -387,9 +387,9 @@ namespace SaveTransformer.Mod
                         {
                             if (group != null)
                             {
-                                group.alpha = 0f; // Make invisible
-                                group.interactable = false; // Disable interactions
-                                group.blocksRaycasts = false; // Disable raycasts (e.g., clicks)
+                                group.alpha = 0f;
+                                group.interactable = false;
+                                group.blocksRaycasts = false;
                             }
                         }
 
@@ -397,15 +397,14 @@ namespace SaveTransformer.Mod
                         {
                             if (group != null)
                             {
-                                group.alpha = 1f; // Make visible
-                                group.interactable = true; // Enable interactions
-                                group.blocksRaycasts = true; // Enable raycasts
+                                group.alpha = 1f;
+                                group.interactable = true;
+                                group.blocksRaycasts = true;
                             }
                         }
 
                         Debug.Log($"Transformed file saved to: {savePath}");
                         logOutput.fontSize = 8;
-
                         logOutput.text = "Success!\n" + response.logs;
                     }
                 }
