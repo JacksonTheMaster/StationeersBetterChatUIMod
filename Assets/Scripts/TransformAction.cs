@@ -311,13 +311,24 @@ namespace SaveTransformer.Mod
                 // Get the GameManager's MenuMusic
                 AudioSource menuMusic = Assets.Scripts.Util.Singleton<GameManager>.Instance.MenuMusic;
                 if (menuMusic != null) menuMusic.mute = true;
+                transformSound.time = 8.4f;
+                float startVolume = 1.0f; // Set a proper starting volume (e.g., 1.0 for full)
+                transformSound.volume = 0f; // Start at zero for fade-in
                 transformSound.Play();
+
+                // Fade in transform sound
+                float fadeInTime = 1.0f;
+                for (float t = 0; t < fadeInTime; t += Time.deltaTime)
+                {
+                    transformSound.volume = startVolume * (t / fadeInTime);
+                    yield return null;
+                }
+                transformSound.volume = startVolume; // Ensure full volume after fade-in
 
                 yield return request.SendWebRequest();
 
                 // Fade out transform sound
                 float fadeTime = 2.0f; // Duration of fade in seconds
-                float startVolume = transformSound.volume;
                 for (float t = 0; t < fadeTime; t += Time.deltaTime)
                 {
                     transformSound.volume = startVolume * (1 - t / fadeTime);
