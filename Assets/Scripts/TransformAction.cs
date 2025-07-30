@@ -1,4 +1,5 @@
-﻿using MoonSharp.VsCodeDebugger.SDK;
+﻿using Assets.Scripts;
+using MoonSharp.VsCodeDebugger.SDK;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace SaveTransformer.Mod
         public TMP_InputField XSliderInput;
         public TMP_InputField YSliderInput;
         public TMP_InputField ZSliderInput; 
+        public AudioSource transformSound;
         private string migratedFolderName;
         [SerializeField] private TextMeshProUGUI logOutput; // Placeholder for future UI logging
         [SerializeField] private CanvasGroup[] beforeTransformState;
@@ -301,11 +303,21 @@ namespace SaveTransformer.Mod
             byte[] fileBytes = File.ReadAllBytes(filePath);
             form.AddBinaryData("oldSaveFile", fileBytes, Path.GetFileName(filePath));
 
-            using (UnityWebRequest request = UnityWebRequest.Post("http://localhost:8080/transform", form))
+            using (UnityWebRequest request = UnityWebRequest.Post("https://sst.jxsn.dev/transform", form))
             {
                 request.SetRequestHeader("User-Agent", "SST-Unity/1.0");
-                Debug.Log("Sending transformation request to http://localhost:8080/transform");
+                Debug.Log("Sending transformation request to https://sst.jxsn.dev/transform");
+
+                // Get the GameManager's MenuMusic
+                AudioSource menuMusic = Assets.Scripts.Util.Singleton<GameManager>.Instance.MenuMusic;
+                if (menuMusic != null) menuMusic.mute = true;
+                transformSound.Play();
+
                 yield return request.SendWebRequest();
+
+                // Restore audio
+                transformSound.Stop();
+                if (menuMusic != null) menuMusic.mute = false;
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
@@ -345,7 +357,7 @@ namespace SaveTransformer.Mod
 
                 Debug.Log("Transformation successful. Logs:\n" + response.logs);
 
-                using (UnityWebRequest downloadRequest = UnityWebRequest.Get("http://localhost:8080/" + response.downloadPath))
+                using (UnityWebRequest downloadRequest = UnityWebRequest.Get("https://sst.jxsn.dev/" + response.downloadPath))
                 {
                     downloadRequest.SetRequestHeader("User-Agent", "SST-Unity/1.0");
                     yield return downloadRequest.SendWebRequest();
