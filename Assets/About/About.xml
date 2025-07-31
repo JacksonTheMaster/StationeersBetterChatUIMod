@@ -6,14 +6,64 @@
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>
 	  [h1]SaveTransformerMod[/h1]
-	  [b]WARNING:[/b] This is a StationeersLaunchPad Plugin Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.
+	  [b]Attention:[/b] This is a StationeersLaunchPad Mod. It requires BepInEx along with the StationeersLaunchPad plugin.
 	  See: https://github.com/StationeersLaunchPad/StationeersLaunchPad/
+	  
+	  If you do not want to use a Mod, you can also transform your save using the webApp of this tool: https://sst.jxsn.dev
+
+	  [h2]Overview[/h2]
+	  SaveTransformerMod is a StationeersLaunchPad Mod designed to update old save files to work with the game's new terrain and save system. With no official save migration tool provided by the developers, this mod offers a solution to convert your saves. Initially a web-based tool with an API (https://sst.jxsn.dev/), it has been upgraded with an ingame UI for a more user-friendly experience.
+
+	  [h2]Features[/h2]
+	  - Updates old save files to the new terrain system, removing outdated, deprecated elements.
+	  - Allows transferring saves between different maps or repositioning structures on the same map with adjustable X, Y, Z offsets.
+	  - Ideal for moving bases (e.g., from Mars to Lunar) or testing new locations.
+	  - Works with both save types, world.xml (preterrain) to new world.save, or world.save to world.save
+
+	  [h2]How to Use[/h2]
+	  0. Install BepInEx and SLP if not already done and launch the game to the main menu
+	  1. *Open the UI with ctrl + t*
+	  2. Select your save name you want to transform and the world type you want to migrate it to from the Dropdowns.
+	  3. Optionally adjust structure positions with the sliders or number boxes
+	  4. Click *Transform* to process the save (takes seconds to minutes based on size), then click the *Load Save* button
+	  5. Tip: Use a GPS Tablet in-game to refine offsets. Multiple transformation attempts may be needed for best results.
+
+	  [h2]World Types and Offsets[/h2]
+	  - Y Offset: Adjusts height (new bedrock is Y=0, unlike old surface at Y=0).
+	  - X and Z Offsets: Move the save horizontally to a new position. Start with defaults and tweak as needed.
+	  - The transformation uses offsets. This means, the specified coordinates get added to the previous corrdinates. 
+	  - If you built around spawn in the old system, using the offsets with corrdinates from the GPS tablet works great, but if you built your base far far away from spawn, you might have to calculate what the offsets should be.
+
+	  [h2]Troubleshooting[/h2]
+	  - Underground structures? Increase Y Offset!
+	  - Floating bases? Decrease Y Offset!
+	  - Base inside terrain? Adjust X, Z, or Y offsets.
+	  - Load errors/freezes? Check logs (F3 > `logtoclipboard`) and if needed, ask away on the SSUI Discord (click ? Button followed by "I need more help button") if necessary.
+
+	  [h2]Considerations[/h2]
+	  - Caution: Gas Canisters get removed! It's recommended to transform the save with your character *inside* the base!
+
+	  [h2]Additional Notes[/h2]
+	  - Created by JacksonTheMaster to preserve old saves while developers focus on new awesome features.
+	  - Data is deleted after transformation (uploads removed instantly, downloads after 20 seconds).
+	  - After loading the transformed save, for best compatibility, save in-game, restart the game entirely, and run `REGENERATEROOMS` via F3 console. Do this for the last transform, when you are satisfied with the result.
+
+	  [h2]Support[/h2]
+	  Join the SSUI Discord (https://discord.gg/8n3vN92MyJ) for assistance.
   </Description>
   <!-- Ingame Description using TMP tags for Workshop menu -->
   <InGameDescription>
-    <![CDATA[<size="30"><color=#ffa500> SaveTransformerMod </color></size>
-<b>WARNING:</b> <color=#ff0000>This is a StationeersLaunchPad Plugin Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.</color>
-See: https://github.com/StationeersLaunchPad/StationeersLaunchPad/
+	  <![CDATA[<size="30"><color=#ffa500>SaveTransformerMod</color></size>
+<b>WARNING:</b> <color=#ff0000>This is a StationeersLaunchPad Plugin Mod. It requires BepInEx to be installed with the StationeersLaunchPad plugin.</color>
+<br>
+</b> <color=#FFA500>Open UI with ctrl + t!</color>
+<b>Transform Your old Saves with ease!</b>
+Brought to you by JacksonTheMaster, this mod resurrects your old Stationeers saves! With the game’s new terrain system leaving old files behind, this tool, originally born as a web based tool with API [](https://sst.jxsn.dev/) lets you migrate saves, shift entire bases, or move structures in the new save system, all with X, Y, Z offsets.
+<br>
+<b>Tips:</b> Use a GPS Tablet to perfect your offsets—trial and error makes it shine!
+<br>
+<b>Fixes:</b> Underground bases? Raise Y! Floating? Lower Y! Errors? Check logs, try again! (F3 > logtoclipboard)
+<br>
 ]]>
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
