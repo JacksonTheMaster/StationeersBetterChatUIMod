@@ -2304,7 +2304,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -386.70956, y: 277.49448}
+  m_AnchoredPosition: {x: -365.70004, y: 277.49448}
   m_SizeDelta: {x: 79.8004, y: 14.146}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7318107106741251328
@@ -4617,7 +4617,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -386.7094, y: 119.494576}
+  m_AnchoredPosition: {x: -365.6999, y: 119.494576}
   m_SizeDelta: {x: 79.8004, y: 14.146}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1403325603969326842
@@ -5270,7 +5270,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -386.7094, y: 198.7945}
+  m_AnchoredPosition: {x: -365.7, y: 198.7945}
   m_SizeDelta: {x: 79.8004, y: 14.146}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1288231104087609345
@@ -5407,7 +5407,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 279.97583, y: 298.4485}
+  m_AnchoredPosition: {x: 179, y: 298.1}
   m_SizeDelta: {x: 97.1678, y: 20.0239}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5359457534788849005
@@ -8326,7 +8326,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 80.6, y: 298.4485}
+  m_AnchoredPosition: {x: -257.5, y: 298.2}
   m_SizeDelta: {x: 97.1678, y: 20.0239}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7933969926284379423
@@ -8505,8 +8505,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.7166, y: 2.1}
-  m_SizeDelta: {x: -2.3733, y: -0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &984817733827282238
 CanvasRenderer:
@@ -8599,7 +8599,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 4.0929832, z: 1.9032593, w: 0}
+  m_margin: {x: 0, y: 0.2618065, z: 0.18591309, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
