@@ -9500,7 +9500,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0.000015258789}
-  m_SizeDelta: {x: 0, y: 19.1538}
+  m_SizeDelta: {x: 0, y: 20}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &8534640695810757766
 GameObject:
@@ -9699,7 +9699,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: -0.0000038146973, y: 0.000015258789}
-  m_SizeDelta: {x: -4, y: 150}
+  m_SizeDelta: {x: -4, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &5780638244731771613
 CanvasRenderer:
@@ -9782,7 +9782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
-  m_VerticalFit: 0
+  m_VerticalFit: 2
 --- !u!114 &6815136068583055835
 MonoBehaviour:
   m_ObjectHideFlags: 0
