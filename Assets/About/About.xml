@@ -8,8 +8,9 @@
 	  [h1]SaveTransformerMod[/h1]
 	  [b]Attention:[/b] This is a StationeersLaunchPad Mod. It requires BepInEx along with the StationeersLaunchPad plugin.
 	  See: https://github.com/StationeersLaunchPad/StationeersLaunchPad/
-	  
-	  If you do not want to use a Mod, you can also transform your save using the webApp of this tool: https://sst.jxsn.dev
+
+	  [h1] [b] If you do not want to use a Mod, you can also transform your save using the webApp of this tool: https://sst.jxsn.dev [/b] [/h1]
+
 
 	  [h2]Overview[/h2]
 	  SaveTransformerMod is a StationeersLaunchPad Mod designed to update old save files to work with the game's new terrain and save system. With no official save migration tool provided by the developers, this mod offers a solution to convert your saves. Initially a web-based tool with an API (https://sst.jxsn.dev/), it has been upgraded with an ingame UI for a more user-friendly experience.
@@ -31,9 +32,10 @@
 	  [h2]World Types and Offsets[/h2]
 	  - Y Offset: Adjusts height (new bedrock is Y=0, unlike old surface at Y=0).
 	  - X and Z Offsets: Move the save horizontally to a new position. Start with defaults and tweak as needed.
-	  - The transformation uses offsets. This means, the specified coordinates get added to the previous corrdinates. 
+	  - The transformation uses offsets. This means, the specified coordinates get added to the previous corrdinates.
 	  - If you built around spawn in the old system, using the offsets with corrdinates from the GPS tablet works great, but if you built your base far far away from spawn, you might have to calculate what the offsets should be.
-
+	  - Tutorial by God, creator of the universe (for webApp, but same principle applies): https://www.youtube.com/watch?v=nD2YLEmYHWE (at 194s)
+	  
 	  [h2]Troubleshooting[/h2]
 	  - Underground structures? Increase Y Offset!
 	  - Floating bases? Decrease Y Offset!
@@ -73,6 +75,7 @@ Brought to you by JacksonTheMaster, this mod resurrects your old Stationeers sav
     [*]Initial release
     [/list]
   </ChangeLog>
+  <WorkshopHandle>3538492515</WorkshopHandle>
   <!-- StationeersLaunchPad and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
   <Tags>
     <Tag>StationeersLaunchPad</Tag>
