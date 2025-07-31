@@ -10458,12 +10458,6 @@ MonoBehaviour:
       m_Image: {fileID: 21300000, guid: 8fa8cbc310a7ece4eb47371673c6d765, type: 3}
     - m_Text: Venus
       m_Image: {fileID: 21300000, guid: fce5b1febb5ec5c488e545332121035c, type: 3}
-    - m_Text: Venus
-      m_Image: {fileID: 21300000, guid: fce5b1febb5ec5c488e545332121035c, type: 3}
-    - m_Text: Venus
-      m_Image: {fileID: 21300000, guid: fce5b1febb5ec5c488e545332121035c, type: 3}
-    - m_Text: Venus
-      m_Image: {fileID: 21300000, guid: fce5b1febb5ec5c488e545332121035c, type: 3}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
