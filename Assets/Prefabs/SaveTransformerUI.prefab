@@ -5636,7 +5636,7 @@ MonoBehaviour:
   m_Options:
     m_Options:
     - m_Text: Essential
-      m_Image: {fileID: 21300000, guid: 02a5b7926cfa5274c86392c8ee779b1a, type: 3}
+      m_Image: {fileID: 21300000, guid: 71135dc29daff9441abb9fff023ca887, type: 3}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
