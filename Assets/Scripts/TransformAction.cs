@@ -281,11 +281,11 @@ namespace SaveTransformer.Mod
             var (elements, types, prefabs, logging) = _presets[preset];
             bool isSaveFile = filePath.EndsWith(".save", StringComparison.OrdinalIgnoreCase);
             List<string> typesToRemove = types.ToList();
-            if (isSaveFile)
-            {
-                typesToRemove.Add("HumanSaveData");
-                Debug.Log("Detected .save file. Added HumanSaveData to types to remove.");
-            }
+            //if (isSaveFile)
+            //{
+            //    typesToRemove.Add("HumanSaveData");
+            //    Debug.Log("Detected .save file. Added HumanSaveData to types to remove.");
+            //}
 
             WWWForm form = new WWWForm();
             form.AddField("worldType", worldTypeSelection.SelectedWorldType);
