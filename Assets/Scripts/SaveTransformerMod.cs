@@ -55,18 +55,18 @@ public static class ChatMessagePrintPatch
 // ────────────────────────────────────────────────────────────────────────────────
 public class ChatUIController : MonoBehaviour
 {
-    private ContentHandler contentHandler; // ← Add this field!
+    private ContentHandler contentHandler;
 
     private GameObject uiInstance;
     private TextMeshProUGUI[] messageTexts = new TextMeshProUGUI[5];
     private CanvasGroup[] panelGroups = new CanvasGroup[5];
 
-    private string[] messageQueue = new string[5]; // Simple ring buffer
-    private int currentIndex = 0;
+    // Store message + the coroutine that's fading it (to stop/restart if needed)
+    private Coroutine[] fadeCoroutines = new Coroutine[5];
 
     public void Initialize(BetterChatUI modInstance, ContentHandler content)
     {
-        contentHandler = content; // ← Assign it here!
+        contentHandler = content;
         LoadAndCreateUI();
     }
 
@@ -74,7 +74,7 @@ public class ChatUIController : MonoBehaviour
     {
         if (contentHandler == null)
         {
-            Debug.LogError("BetterChatUI: contentHandler is null in ChatUIController!");
+            Debug.LogError("BetterChatUI: contentHandler is null!");
             return;
         }
 
@@ -88,7 +88,6 @@ public class ChatUIController : MonoBehaviour
         uiInstance = Object.Instantiate(uiPrefab, transform);
         uiInstance.SetActive(true);
 
-        // Find the Canvas first (optional but safer)
         var canvasTransform = uiInstance.transform.Find("Canvas");
         if (canvasTransform == null)
         {
@@ -96,72 +95,64 @@ public class ChatUIController : MonoBehaviour
             return;
         }
 
-        // Now find panels under Canvas
         for (int i = 0; i < 5; i++)
         {
             int panelNum = i + 1;
             var panel = canvasTransform.Find($"Panel{panelNum}");
             if (panel == null)
             {
-                Debug.LogWarning($"Panel{panelNum} not found under Canvas!");
+                Debug.LogWarning($"Panel{panelNum} not found!");
                 continue;
             }
 
-            panelGroups[i] = panel.GetComponent<CanvasGroup>();
-            if (panelGroups[i] == null)
-            {
-                panelGroups[i] = panel.gameObject.AddComponent<CanvasGroup>();
-            }
+            panelGroups[i] = panel.GetComponent<CanvasGroup>() ?? panel.gameObject.AddComponent<CanvasGroup>();
 
             var text = panel.Find($"Message{panelNum}")?.GetComponent<TextMeshProUGUI>();
             if (text != null)
             {
                 messageTexts[i] = text;
                 text.text = "";
-                panel.gameObject.SetActive(false); // Start hidden
+                panel.gameObject.SetActive(false);
             }
             else
             {
-                Debug.LogWarning($"Message{panelNum} not found under Panel{panelNum}!");
+                Debug.LogWarning($"Message{panelNum} not found!");
             }
         }
     }
 
     public void AddMessage(string message)
     {
-        // Shift messages up (oldest gets overwritten)
+        // Shift messages up
         for (int i = 4; i > 0; i--)
         {
-            messageQueue[i] = messageQueue[i - 1];
-        }
-        messageQueue[0] = message;
-
-        // Update UI
-        UpdateDisplay();
-    }
-
-    private void UpdateDisplay()
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            int panelIndex = i;
-            string msg = messageQueue[panelIndex];
-
-            if (!string.IsNullOrEmpty(msg))
+            // Stop any ongoing fade for the panel we're shifting into
+            if (fadeCoroutines[i] != null)
             {
-                messageTexts[panelIndex].text = msg;
-                panelGroups[panelIndex].alpha = 1f;
-                panelGroups[panelIndex].gameObject.SetActive(true);
+                StopCoroutine(fadeCoroutines[i]);
+                fadeCoroutines[i] = null;
+            }
 
-                // Start fade-out coroutine for this panel
-                StopCoroutine($"FadePanel_{panelIndex}");
-                StartCoroutine(FadePanel(panelIndex, 10f));
-            }
-            else
-            {
-                panelGroups[panelIndex].gameObject.SetActive(false);
-            }
+            // Move text to next panel
+            messageTexts[i].text = messageTexts[i - 1].text;
+            panelGroups[i].alpha = panelGroups[i - 1].alpha;
+            panelGroups[i].gameObject.SetActive(panelGroups[i - 1].gameObject.activeSelf);
+
+            // Carry over the coroutine if it was running
+            fadeCoroutines[i] = fadeCoroutines[i - 1];
+            fadeCoroutines[i - 1] = null; // Clear old slot
         }
+
+        // Add new message to top panel (Panel1 / index 0)
+        messageTexts[0].text = message;
+        panelGroups[0].alpha = 1f;
+        panelGroups[0].gameObject.SetActive(true);
+
+        // Start fresh fade for this new message
+        if (fadeCoroutines[0] != null)
+            StopCoroutine(fadeCoroutines[0]);
+
+        fadeCoroutines[0] = StartCoroutine(FadePanel(0, 10f));
     }
 
     private System.Collections.IEnumerator FadePanel(int panelIndex, float delay)
@@ -180,7 +171,7 @@ public class ChatUIController : MonoBehaviour
         }
 
         group.gameObject.SetActive(false);
-        // Optional: Clear text after fade
         messageTexts[panelIndex].text = "";
+        fadeCoroutines[panelIndex] = null;
     }
 }
