@@ -1,20 +1,35 @@
 ﻿using Assets.Scripts.Networking;
 using Assets.Scripts.Util;
+using BepInEx.Configuration;
 using HarmonyLib;
 using SaveTransformer.Mod;
 using StationeersMods.Interface;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 [StationeersMod("BetterChatUI", "BetterChatUI", "0.2.0")]
 public class BetterChatUI : ModBehaviour
 {
+    // Config entry for chat style/prefab
+    private ConfigEntry<string> chatStyleConfig;
+
     private new ContentHandler contentHandler;
     private ChatUIController chatUI;
 
     public override void OnLoaded(ContentHandler contentHandler)
     {
-        UnityEngine.Debug.Log("BetterChatUI says: Hello World!");
+        chatStyleConfig = Config.Bind(
+            "Chat UI",                  // Section name
+            "ChatStyle",                // Key name
+            "TopLeftNewestTop",              // Default value
+            new ConfigDescription(
+                "Which chat prefab/style to use (TopLeftNewestTop, TopLeftNewestBottom, TopRightNewestTop, TopRightNewestBottom, TopLeftNewestTopClearBackground)",
+                new AcceptableValueList<string>("TopLeftNewestTop", "TopLeftNewestBottom", "TopRightNewestTop", "TopRightNewestBottom", "TopLeftNewestTopClearBackground")
+            )
+        );
+
+        UnityEngine.Debug.Log($"BetterChatUI loaded with chat style: {chatStyleConfig.Value}");
+
         this.contentHandler = contentHandler;
 
         Harmony harmony = new Harmony("BetterChatUI");
@@ -26,8 +41,27 @@ public class BetterChatUI : ModBehaviour
         // Create persistent UI manager
         var gameObject = new GameObject("BetterChatUIController");
         chatUI = gameObject.AddComponent<ChatUIController>();
-        chatUI.Initialize(this, contentHandler);
+        chatUI.Initialize(this, contentHandler, chatStyleConfig.Value); // Pass the chosen prefab name
         UnityEngine.Object.DontDestroyOnLoad(gameObject);
+    }
+
+    // Optional: Listen for config changes (if user changes it in-game)
+    private void Awake()
+    {
+        // If config changes while game is running, we can reload UI
+        chatStyleConfig.SettingChanged += (sender, args) =>
+        {
+            Debug.Log($"Chat style changed to {chatStyleConfig.Value} — reloading UI!");
+            // Optional: Destroy old UI and recreate with new prefab
+            if (chatUI != null)
+            {
+                Destroy(chatUI.gameObject);
+                var newGameObject = new GameObject("BetterChatUIController");
+                chatUI = newGameObject.AddComponent<ChatUIController>();
+                chatUI.Initialize(this, contentHandler, chatStyleConfig.Value);
+                DontDestroyOnLoad(newGameObject);
+            }
+        };
     }
 }
 
@@ -56,14 +90,16 @@ public static class ChatMessagePrintPatch
 public class ChatUIController : MonoBehaviour
 {
     private ContentHandler contentHandler;
+    private string currentPrefabName;
 
     private GameObject uiInstance;
     private TextMeshProUGUI[] messageTexts = new TextMeshProUGUI[5];
     private CanvasGroup[] panelGroups = new CanvasGroup[5];
 
-    public void Initialize(BetterChatUI modInstance, ContentHandler content)
+    public void Initialize(BetterChatUI modInstance, ContentHandler content, string prefabName)
     {
         contentHandler = content;
+        currentPrefabName = prefabName; // "ChatMessage" or "ChatMessageB"
         LoadAndCreateUI();
     }
 
@@ -75,11 +111,17 @@ public class ChatUIController : MonoBehaviour
             return;
         }
 
-        var uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "ChatMessage");
+        // Use the chosen prefab name!
+        var uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == currentPrefabName);
         if (uiPrefab == null)
         {
-            Debug.LogError("BetterChatUI: Could not find prefab 'ChatMessage'!");
-            return;
+            Debug.LogError($"BetterChatUI: Could not find prefab '{currentPrefabName}'! Falling back to 'ChatMessage'");
+            uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "ChatMessage");
+            if (uiPrefab == null)
+            {
+                Debug.LogError("BetterChatUI: No fallback prefab found either!");
+                return;
+            }
         }
 
         uiInstance = Object.Instantiate(uiPrefab, transform);
