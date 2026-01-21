@@ -61,9 +61,6 @@ public class ChatUIController : MonoBehaviour
     private TextMeshProUGUI[] messageTexts = new TextMeshProUGUI[5];
     private CanvasGroup[] panelGroups = new CanvasGroup[5];
 
-    // Store message + the coroutine that's fading it (to stop/restart if needed)
-    private Coroutine[] fadeCoroutines = new Coroutine[5];
-
     public void Initialize(BetterChatUI modInstance, ContentHandler content)
     {
         contentHandler = content;
@@ -123,36 +120,49 @@ public class ChatUIController : MonoBehaviour
 
     public void AddMessage(string message)
     {
-        // Shift messages up
-        for (int i = 4; i > 0; i--)
+        // Stop all ongoing fade coroutines to prevent conflicts
+        for (int i = 0; i < 5; i++)
         {
-            // Stop any ongoing fade for the panel we're shifting into
             if (fadeCoroutines[i] != null)
             {
                 StopCoroutine(fadeCoroutines[i]);
                 fadeCoroutines[i] = null;
             }
-
-            // Move text to next panel
-            messageTexts[i].text = messageTexts[i - 1].text;
-            panelGroups[i].alpha = panelGroups[i - 1].alpha;
-            panelGroups[i].gameObject.SetActive(panelGroups[i - 1].gameObject.activeSelf);
-
-            // Carry over the coroutine if it was running
-            fadeCoroutines[i] = fadeCoroutines[i - 1];
-            fadeCoroutines[i - 1] = null; // Clear old slot
         }
 
-        // Add new message to top panel (Panel1 / index 0)
+        // Shift messages down (text only)
+        for (int i = 4; i > 0; i--)
+        {
+            messageTexts[i].text = messageTexts[i - 1].text;
+        }
+
+        // Add new message to top (Panel1 / index 0)
         messageTexts[0].text = message;
-        panelGroups[0].alpha = 1f;
-        panelGroups[0].gameObject.SetActive(true);
 
-        // Start fresh fade for this new message
-        if (fadeCoroutines[0] != null)
-            StopCoroutine(fadeCoroutines[0]);
+        // Update visibility and start fresh fades for all visible panels
+        UpdateDisplayWithFreshFades();
+    }
 
-        fadeCoroutines[0] = StartCoroutine(FadePanel(0, 10f));
+    private void UpdateDisplayWithFreshFades()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            string msg = messageTexts[i].text;
+
+            if (!string.IsNullOrEmpty(msg))
+            {
+                panelGroups[i].alpha = 1f;
+                panelGroups[i].gameObject.SetActive(true);
+
+                // Start a fresh 10-second fade for this panel
+                fadeCoroutines[i] = StartCoroutine(FadePanel(i, 10f));
+            }
+            else
+            {
+                panelGroups[i].gameObject.SetActive(false);
+                messageTexts[i].text = "";
+            }
+        }
     }
 
     private System.Collections.IEnumerator FadePanel(int panelIndex, float delay)
@@ -174,4 +184,7 @@ public class ChatUIController : MonoBehaviour
         messageTexts[panelIndex].text = "";
         fadeCoroutines[panelIndex] = null;
     }
+
+    // Add this field at the top of the class (next to other arrays)
+    private Coroutine[] fadeCoroutines = new Coroutine[5];
 }
