@@ -10,7 +10,6 @@ using UnityEngine;
 [StationeersMod("BetterChatUI", "BetterChatUI", "0.2.0")]
 public class BetterChatUI : ModBehaviour
 {
-    // Config entry for chat style/prefab
     private ConfigEntry<string> chatStyleConfig;
 
     private new ContentHandler contentHandler;
@@ -36,23 +35,21 @@ public class BetterChatUI : ModBehaviour
         harmony.PatchAll();
 
         PrefabPatch.prefabs = contentHandler.prefabs;
-        UnityEngine.Debug.Log("BetterChatUI Loaded with " + contentHandler.prefabs.Count + " prefab(s)");
+        UnityEngine.Debug.Log("BetterChatUI Loaded " + contentHandler.prefabs.Count + " prefab(s)");
 
         // Create persistent UI manager
         var gameObject = new GameObject("BetterChatUIController");
         chatUI = gameObject.AddComponent<ChatUIController>();
-        chatUI.Initialize(this, contentHandler, chatStyleConfig.Value); // Pass the chosen prefab name
+        chatUI.Initialize(this, contentHandler, chatStyleConfig.Value);
         UnityEngine.Object.DontDestroyOnLoad(gameObject);
     }
 
-    // Optional: Listen for config changes (if user changes it in-game)
     private void Awake()
     {
-        // If config changes while game is running, we can reload UI
+        // If config changes while game is running, this should reload the UI to use the correct prefab
         chatStyleConfig.SettingChanged += (sender, args) =>
         {
             Debug.Log($"Chat style changed to {chatStyleConfig.Value} — reloading UI!");
-            // Optional: Destroy old UI and recreate with new prefab
             if (chatUI != null)
             {
                 Destroy(chatUI.gameObject);
@@ -95,11 +92,12 @@ public class ChatUIController : MonoBehaviour
     private GameObject uiInstance;
     private TextMeshProUGUI[] messageTexts = new TextMeshProUGUI[5];
     private CanvasGroup[] panelGroups = new CanvasGroup[5];
+    private AudioSource notificationSound;
 
     public void Initialize(BetterChatUI modInstance, ContentHandler content, string prefabName)
     {
         contentHandler = content;
-        currentPrefabName = prefabName; // "ChatMessage" or "ChatMessageB"
+        currentPrefabName = prefabName;
         LoadAndCreateUI();
     }
 
@@ -111,12 +109,11 @@ public class ChatUIController : MonoBehaviour
             return;
         }
 
-        // Use the chosen prefab name!
         var uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == currentPrefabName);
         if (uiPrefab == null)
         {
-            Debug.LogError($"BetterChatUI: Could not find prefab '{currentPrefabName}'! Falling back to 'ChatMessage'");
-            uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "ChatMessage");
+            Debug.LogError($"BetterChatUI: Could not find prefab '{currentPrefabName}'! Falling back to 'TopLeftNewestTop'");
+            uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "TopLeftNewestTop");
             if (uiPrefab == null)
             {
                 Debug.LogError("BetterChatUI: No fallback prefab found either!");
@@ -126,6 +123,16 @@ public class ChatUIController : MonoBehaviour
 
         uiInstance = Object.Instantiate(uiPrefab, transform);
         uiInstance.SetActive(true);
+
+        notificationSound = uiInstance.transform.Find("Sound")?.GetComponent<AudioSource>();
+        if (notificationSound == null)
+        {
+            Debug.LogWarning("BetterChatUI: AudioSource 'Sound' not found in prefab root! No notification sound will play.");
+        }
+        else
+        {
+            Debug.Log("BetterChatUI: Notification sound loaded successfully.");
+        }
 
         var canvasTransform = uiInstance.transform.Find("Canvas");
         if (canvasTransform == null)
@@ -181,6 +188,12 @@ public class ChatUIController : MonoBehaviour
         // Add new message to top (Panel1 / index 0)
         messageTexts[0].text = message;
 
+        // Play the notification sound if it exists
+        if (notificationSound != null && notificationSound.clip != null)
+        {
+            notificationSound.Play();
+        }
+
         // Update visibility and start fresh fades for all visible panels
         UpdateDisplayWithFreshFades();
     }
@@ -227,6 +240,5 @@ public class ChatUIController : MonoBehaviour
         fadeCoroutines[panelIndex] = null;
     }
 
-    // Add this field at the top of the class (next to other arrays)
     private Coroutine[] fadeCoroutines = new Coroutine[5];
 }
