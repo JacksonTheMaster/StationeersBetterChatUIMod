@@ -10,7 +10,7 @@ using TMPro;
 public class BetterChatUI : ModBehaviour
 {
     private new ContentHandler contentHandler;
-    private SaveTransformerUI chatUI;
+    private ChatUIController chatUI;
 
     public override void OnLoaded(ContentHandler contentHandler)
     {
@@ -23,9 +23,9 @@ public class BetterChatUI : ModBehaviour
         PrefabPatch.prefabs = contentHandler.prefabs;
         UnityEngine.Debug.Log("BetterChatUI Loaded with " + contentHandler.prefabs.Count + " prefab(s)");
 
-        // Create persistent manager
-        var gameObject = new GameObject("BetterChatUIUI");
-        chatUI = gameObject.AddComponent<SaveTransformerUI>();
+        // Create persistent UI manager
+        var gameObject = new GameObject("BetterChatUIController");
+        chatUI = gameObject.AddComponent<ChatUIController>();
         chatUI.Initialize(this, contentHandler);
         UnityEngine.Object.DontDestroyOnLoad(gameObject);
     }
@@ -40,89 +40,147 @@ public static class ChatMessagePrintPatch
     [HarmonyPostfix]
     static void Postfix(ChatMessage __instance)
     {
-        var ui = Object.FindObjectOfType<SaveTransformerUI>();
+        var ui = Object.FindObjectOfType<ChatUIController>();
         if (ui != null)
         {
             string formatted = $"<color=#FFAA00>{__instance.DisplayName}</color>: {__instance.ChatText}";
-            ui.AddChatMessage(formatted);
-            UnityEngine.Debug.Log($"[ChatPatch] Added message: {formatted}");
+            ui.AddMessage(formatted);
+            UnityEngine.Debug.Log($"[ChatPatch] Added: {formatted}");
         }
     }
 }
 
-public class SaveTransformerUI : MonoBehaviour
+// ────────────────────────────────────────────────────────────────────────────────
+// Main UI Controller (manages the 5 panels)
+// ────────────────────────────────────────────────────────────────────────────────
+public class ChatUIController : MonoBehaviour
 {
-    private ContentHandler contentHandler;
-    private GameObject messagePrefab;
+    private ContentHandler contentHandler; // ← Add this field!
+
+    private GameObject uiInstance;
+    private TextMeshProUGUI[] messageTexts = new TextMeshProUGUI[5];
+    private CanvasGroup[] panelGroups = new CanvasGroup[5];
+
+    private string[] messageQueue = new string[5]; // Simple ring buffer
+    private int currentIndex = 0;
 
     public void Initialize(BetterChatUI modInstance, ContentHandler content)
     {
-        contentHandler = content;
-        LoadMessagePrefab();
+        contentHandler = content; // ← Assign it here!
+        LoadAndCreateUI();
     }
 
-    private void LoadMessagePrefab()
+    private void LoadAndCreateUI()
     {
-        // Load the per-message prefab (Canvas → Panel → TMP Text)
-        messagePrefab = contentHandler.prefabs.ReverseFind(p => p.name == "ChatMessage");
-        if (messagePrefab == null)
+        if (contentHandler == null)
+        {
+            Debug.LogError("BetterChatUI: contentHandler is null in ChatUIController!");
+            return;
+        }
+
+        var uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "ChatMessage");
+        if (uiPrefab == null)
         {
             Debug.LogError("BetterChatUI: Could not find prefab 'ChatMessage'!");
-        }
-        else
-        {
-            Debug.Log("BetterChatUI: ChatMessage prefab loaded successfully");
-        }
-    }
-
-    public void AddChatMessage(string messageText)
-    {
-        if (messagePrefab == null)
             return;
-
-        // Instantiate a FULL new Canvas per message
-        GameObject msgCanvas = Object.Instantiate(messagePrefab);
-
-        // Optional: Make it child of this manager (so it gets destroyed with mod unload)
-        msgCanvas.transform.SetParent(transform);
-
-        // Find the TMP Text inside
-        var tmpText = msgCanvas.GetComponentInChildren<TextMeshProUGUI>();
-        if (tmpText != null)
-        {
-            tmpText.text = messageText;
-            tmpText.ForceMeshUpdate();
-        }
-        else
-        {
-            Debug.LogWarning("No TextMeshProUGUI found in ChatMessageLine prefab!");
         }
 
-        // Auto-fade and destroy after 10 seconds
-        StartCoroutine(FadeAndDestroy(msgCanvas, 10f));
+        uiInstance = Object.Instantiate(uiPrefab, transform);
+        uiInstance.SetActive(true);
+
+        // Find the Canvas first (optional but safer)
+        var canvasTransform = uiInstance.transform.Find("Canvas");
+        if (canvasTransform == null)
+        {
+            Debug.LogError("BetterChatUI: Could not find 'Canvas' under root!");
+            return;
+        }
+
+        // Now find panels under Canvas
+        for (int i = 0; i < 5; i++)
+        {
+            int panelNum = i + 1;
+            var panel = canvasTransform.Find($"Panel{panelNum}");
+            if (panel == null)
+            {
+                Debug.LogWarning($"Panel{panelNum} not found under Canvas!");
+                continue;
+            }
+
+            panelGroups[i] = panel.GetComponent<CanvasGroup>();
+            if (panelGroups[i] == null)
+            {
+                panelGroups[i] = panel.gameObject.AddComponent<CanvasGroup>();
+            }
+
+            var text = panel.Find($"Message{panelNum}")?.GetComponent<TextMeshProUGUI>();
+            if (text != null)
+            {
+                messageTexts[i] = text;
+                text.text = "";
+                panel.gameObject.SetActive(false); // Start hidden
+            }
+            else
+            {
+                Debug.LogWarning($"Message{panelNum} not found under Panel{panelNum}!");
+            }
+        }
     }
 
-    private System.Collections.IEnumerator FadeAndDestroy(GameObject msgObj, float delay)
+    public void AddMessage(string message)
     {
-        // Wait display time
+        // Shift messages up (oldest gets overwritten)
+        for (int i = 4; i > 0; i--)
+        {
+            messageQueue[i] = messageQueue[i - 1];
+        }
+        messageQueue[0] = message;
+
+        // Update UI
+        UpdateDisplay();
+    }
+
+    private void UpdateDisplay()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            int panelIndex = i;
+            string msg = messageQueue[panelIndex];
+
+            if (!string.IsNullOrEmpty(msg))
+            {
+                messageTexts[panelIndex].text = msg;
+                panelGroups[panelIndex].alpha = 1f;
+                panelGroups[panelIndex].gameObject.SetActive(true);
+
+                // Start fade-out coroutine for this panel
+                StopCoroutine($"FadePanel_{panelIndex}");
+                StartCoroutine(FadePanel(panelIndex, 10f));
+            }
+            else
+            {
+                panelGroups[panelIndex].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private System.Collections.IEnumerator FadePanel(int panelIndex, float delay)
+    {
         yield return new WaitForSeconds(delay);
 
-        // Get or add CanvasGroup for fading
-        var canvasGroup = msgObj.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-            canvasGroup = msgObj.AddComponent<CanvasGroup>();
-
-        // Fade out over 1 second
+        CanvasGroup group = panelGroups[panelIndex];
         float fadeTime = 1f;
         float timer = 0f;
+
         while (timer < fadeTime)
         {
             timer += Time.deltaTime;
-            canvasGroup.alpha = 1f - (timer / fadeTime);
+            group.alpha = 1f - (timer / fadeTime);
             yield return null;
         }
 
-        // Destroy the entire message canvas
-        Object.Destroy(msgObj);
+        group.gameObject.SetActive(false);
+        // Optional: Clear text after fade
+        messageTexts[panelIndex].text = "";
     }
 }
