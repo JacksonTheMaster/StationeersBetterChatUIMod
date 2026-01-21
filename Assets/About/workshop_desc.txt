@@ -1,57 +1,45 @@
-	  [h1]SaveTransformerMod[/h1]
-	  [b]Attention:[/b] This is a StationeersLaunchPad Mod. It requires BepInEx along with the StationeersLaunchPad plugin.
-	  See: https://github.com/StationeersLaunchPad/StationeersLaunchPad/
+[h1]Better Chat UI – Modern & pretty ingame Chat[/h1]
 
-	  [h1]🌐[b] If you do not want to use a Mod, you can also transform your save using the webApp of this tool: https://sst.jxsn.dev [/b] [/h1]
+[b]A client-side BepInEx mod that overhauls the default tiny, short-lived chat messages in the console with a beautiful, readable UI.[/b]
 
-          [h1]🐉Transformations are experimental, there might be dragons ahead! [/h1]
+[h2]Features[/h2]
+[list]
+[*] 5-message scrolling display (newest on top by default)
+[*] Player names in bright orange, messages fade out smoothly after 10 seconds (configurable)
+[*] Multiple styles to choose from: Top-Left, Top-Right, Clear Background, etc.
+[*] Notification sound on new messages
+[*] Configurable via BepInEx config file / Workshop Menu ingame
+[*] Fully clientside — only you need the mod
+[/list]
 
-          [h1]❗Open the transformation UI from the Main Menu with CTRL + T[/h1]
+[h2]Why this mod?[/h2]
+The default chat is hard to read: tiny blue text in the bottom-left corner that disappears quickly, and speech bubbles only visible when you're right next to someone. This mod fixes that — chat is now always visible, easy to read, and looks great!
 
-          [h1]♻️Once satisfied with your result, open the Console (F3) and type [code]regeneraterooms [/code][/h1]
-          [h3]⚠️If you don't see your old base and land with a lander capsule, you might need to fly around the map with a GPS Tablet to find your old base.[/h3]
+[h2]Installation[/h2]
+[list]
+[*] Install [b]BepInEx[/b] + [b]StationeersLaunchPad[/b] (required for Stationeers mods)
+[*] Subscribe to the Mod in the Workshop
+[*] Launch the game — the chat UI appears automatically when messages are sent
+[/list]
 
+[h2]Configuration[/h2]
+Default ChatStyle = TopLeftNewestTop
 
-	  [h2]Overview[/h2]
-	  SaveTransformerMod is a StationeersLaunchPad Mod designed to update old save files to work with the game's new terrain and save system. With no official save migration tool provided by the developers, this mod offers a solution to convert your saves. Initially a web-based tool with an API https://sst.jxsn.dev/, it has been upgraded with an ingame UI for a more user-friendly experience. 
-[i]The transformation itself is happening on a remote server at jxsn.dev provided by JacksonTheMaster, not on your computer. This Mod will Upload / Download the selected world for you.[/i]
+Available styles:
+- TopLeftNewestTop
+- TopLeftNewestBottom
+- TopRightNewestTop
+- TopRightNewestBottom
+- TopLeftNewestTopClearBackground
 
-	  [h2]Features[/h2]
-	  - Updates old save files to the new terrain system, removing outdated, deprecated elements.
-	  - Allows transferring saves between different maps or repositioning structures on the same map with adjustable X, Y, Z offsets.
-	  - Ideal for moving bases (e.g., from Mars to Lunar) or testing new locations.
-	  - Works with both save types, world.xml (preterrain) to new world.save, or world.save to world.save
+[h2]Known Limitations[/h2]
+[list]
+[*] No scrollable history (yet) — only shows the last 5 messages
+[/list]
 
-	  [h2]How to Use[/h2]
-	  0. Install BepInEx and SLP if not already done and launch the game to the main menu
-	  1. *Open the UI with ctrl + t*
-	  2. Select your save name you want to transform and the world type you want to migrate it to from the Dropdowns.
-	  3. Optionally adjust structure positions with the sliders or number boxes
-	  4. Click *Transform* to process the save (takes seconds to minutes based on size), then click the *Load Save* button
-	  5. Tip: Use a GPS Tablet in-game to refine offsets. Multiple transformation attempts may be needed for best results.
+[h2]Feedback & Support[/h2]
+Love it? Hate it? Want more styles or features?  
+Join the SSUI Discord: https://discord.gg/8n3vN92MyJ and let me know - or ping me somewhere else!
 
-	  [h2]World Types and Offsets[/h2]
-	  - Y Offset: Adjusts height (new bedrock is Y=0, unlike old surface at Y=0).
-	  - X and Z Offsets: Move the save horizontally to a new position. Start with defaults and tweak as needed.
-	  - The transformation uses offsets. This means, the specified coordinates get added to the previous corrdinates.
-	  - If you built around spawn in the old system, using the offsets with corrdinates from the GPS tablet works great, but if you built your base far far away from spawn, you might have to calculate what the offsets should be.
-	  - Tutorial by God, creator of the universe (for webApp, but same principle applies): https://www.youtube.com/watch?v=nD2YLEmYHWE&t=194s
-	  
-	  [h2]Troubleshooting[/h2]
-	  - Underground structures? Increase Y Offset!
-	  - Floating bases? Decrease Y Offset!
-	  - Base inside terrain? Adjust X, Z, or Y offsets.
-	  - Load errors/freezes? Check logs (F3 > `logtoclipboard`) and if needed, ask away on the SSUI Discord (click ? Button followed by "I need more help button") if necessary.
-
-	  [h2]Considerations[/h2]
-	  - Caution: Gas Canisters get removed! It's recommended to transform the save with your character *inside* the base!
-
-	  [h2]Additional Notes[/h2]
-	  - Created by JacksonTheMaster to preserve old saves while developers focus on new awesome features.
-	  - Data is deleted after transformation (uploads removed instantly, downloads after 20 seconds).
-	  - After loading the transformed save, for best compatibility, save in-game, restart the game entirely, and run `REGENERATEROOMS` via F3 console. Do this for the last transform, when you are satisfied with the result.
-
-	  [h2]Support[/h2]
-	  Join the SSUI Discord https://discord.gg/8n3vN92MyJ for assistance.
-
-[h3]Latest test: 2025-09-11[/h3]
+[h3]Created by JacksonTheMaster[/h3]
+[h3]Latest test: January 21, 2026[/h3]

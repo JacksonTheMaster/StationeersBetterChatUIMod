@@ -7,10 +7,11 @@ using StationeersMods.Interface;
 using TMPro;
 using UnityEngine;
 
-[StationeersMod("BetterChatUI", "BetterChatUI", "0.2.0")]
+[StationeersMod("BetterChatUI", "BetterChatUI", "1.0.0")]
 public class BetterChatUI : ModBehaviour
 {
     private ConfigEntry<string> chatStyleConfig;
+    private ConfigEntry<float> fadeDurationConfig;
 
     private new ContentHandler contentHandler;
     private ChatUIController chatUI;
@@ -18,16 +19,23 @@ public class BetterChatUI : ModBehaviour
     public override void OnLoaded(ContentHandler contentHandler)
     {
         chatStyleConfig = Config.Bind(
-            "Chat UI",                  // Section name
-            "ChatStyle",                // Key name
-            "TopLeftNewestTop",              // Default value
+            "Game Restart Required",
+            "ChatStyle",
+            "TopLeftNewestTop",
             new ConfigDescription(
                 "Which chat prefab/style to use (TopLeftNewestTop, TopLeftNewestBottom, TopRightNewestTop, TopRightNewestBottom, TopLeftNewestTopClearBackground)",
                 new AcceptableValueList<string>("TopLeftNewestTop", "TopLeftNewestBottom", "TopRightNewestTop", "TopRightNewestBottom", "TopLeftNewestTopClearBackground")
             )
         );
 
-        UnityEngine.Debug.Log($"BetterChatUI loaded with chat style: {chatStyleConfig.Value}");
+        fadeDurationConfig = Config.Bind(
+            "Game Restart Required",
+            "MessageDuration",
+            10f,
+            new ConfigDescription("How long each message stays visible before fading (seconds)", new AcceptableValueRange<float>(3f, 30f))
+        );
+
+        UnityEngine.Debug.Log($"BetterChatUI loaded with chat style: {chatStyleConfig.Value}, fade duration: {fadeDurationConfig.Value}s");
 
         this.contentHandler = contentHandler;
 
@@ -40,7 +48,7 @@ public class BetterChatUI : ModBehaviour
         // Create persistent UI manager
         var gameObject = new GameObject("BetterChatUIController");
         chatUI = gameObject.AddComponent<ChatUIController>();
-        chatUI.Initialize(this, contentHandler, chatStyleConfig.Value);
+        chatUI.Initialize(this, contentHandler, chatStyleConfig.Value, fadeDurationConfig.Value);
         UnityEngine.Object.DontDestroyOnLoad(gameObject);
     }
 }
@@ -71,16 +79,18 @@ public class ChatUIController : MonoBehaviour
 {
     private ContentHandler contentHandler;
     private string currentPrefabName;
+    private float fadeDuration;
 
     private GameObject uiInstance;
     private TextMeshProUGUI[] messageTexts = new TextMeshProUGUI[5];
     private CanvasGroup[] panelGroups = new CanvasGroup[5];
     private AudioSource notificationSound;
 
-    public void Initialize(BetterChatUI modInstance, ContentHandler content, string prefabName)
+    public void Initialize(BetterChatUI modInstance, ContentHandler content, string prefabName, float fadeTime)
     {
         contentHandler = content;
         currentPrefabName = prefabName;
+        fadeDuration = fadeTime;
         LoadAndCreateUI();
     }
 
@@ -192,8 +202,7 @@ public class ChatUIController : MonoBehaviour
                 panelGroups[i].alpha = 1f;
                 panelGroups[i].gameObject.SetActive(true);
 
-                // Start a fresh 10-second fade for this panel
-                fadeCoroutines[i] = StartCoroutine(FadePanel(i, 10f));
+                fadeCoroutines[i] = StartCoroutine(FadePanel(i, fadeDuration));
             }
             else
             {

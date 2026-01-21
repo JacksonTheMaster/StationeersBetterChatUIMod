@@ -29,7 +29,7 @@ Brought to you by JacksonTheMaster
     [*]Initial release
     [/list]
   </ChangeLog>
-  <WorkshopHandle>3538492515</WorkshopHandle>
+	<!-- <WorkshopHandle>3538492515</WorkshopHandle>-->
   <!-- StationeersLaunchPad and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
   <Tags>
     <Tag>StationeersLaunchPad</Tag>
