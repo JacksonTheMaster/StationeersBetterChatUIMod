@@ -2,7 +2,7 @@
 using Assets.Scripts.Util;
 using BepInEx.Configuration;
 using HarmonyLib;
-using SaveTransformer.Mod;
+using ChatUI.Mod;
 using StationeersMods.Interface;
 using TMPro;
 using UnityEngine;
@@ -42,23 +42,6 @@ public class BetterChatUI : ModBehaviour
         chatUI = gameObject.AddComponent<ChatUIController>();
         chatUI.Initialize(this, contentHandler, chatStyleConfig.Value);
         UnityEngine.Object.DontDestroyOnLoad(gameObject);
-    }
-
-    private void Awake()
-    {
-        // If config changes while game is running, this should reload the UI to use the correct prefab
-        chatStyleConfig.SettingChanged += (sender, args) =>
-        {
-            Debug.Log($"Chat style changed to {chatStyleConfig.Value} — reloading UI!");
-            if (chatUI != null)
-            {
-                Destroy(chatUI.gameObject);
-                var newGameObject = new GameObject("BetterChatUIController");
-                chatUI = newGameObject.AddComponent<ChatUIController>();
-                chatUI.Initialize(this, contentHandler, chatStyleConfig.Value);
-                DontDestroyOnLoad(newGameObject);
-            }
-        };
     }
 }
 

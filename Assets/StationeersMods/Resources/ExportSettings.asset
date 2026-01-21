@@ -13,19 +13,19 @@ MonoBehaviour:
   m_Name: ExportSettings
   m_EditorClassIdentifier: 
   _author: JXSN
-  _description: SaveTransformerMod
-  _name: SaveTransformerMod
+  _description: BetterChatUI
+  _name: BetterChatUI
   _outputDirectory: C:/Users/admjla/Documents/My Games/Stationeers/mods
   _stationeersDirectory: E:/Steam/steamapps/common/Stationeers
   _stationeersArguments: 
   _version: 0.0.1
   _assemblies:
-  - Assets/Scripts/SaveTransformerMod.asmdef
+  - Assets/Scripts/BetterChatUI.asmdef
   _artifacts: []
   _contentTypes: -1
   _includePdbs: 0
   _waitForDebugger: 0
   _bootType: 0
   _startupPrefab: {fileID: 0}
-  _startupClass: SaveTransformerMod
+  _startupClass: BetterChatUI
   _startupScene: 

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Name>SaveTransformerMod [StationeersLaunchPad]</Name>
+  <Name>BetterChatUI [StationeersLaunchPad]</Name>
   <Author>JXSN</Author>
-  <Version>0.2.5116.23239.2</Version>
+  <Version>1.0.0</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>
-	  [h1]SaveTransformerMod[/h1]
+	  [h1]BetterChatUI[/h1]
 	  
 	  Add via Steam
 
@@ -14,24 +14,19 @@
   </Description>
   <!-- Ingame Description using TMP tags for Workshop menu -->
   <InGameDescription>
-	  <![CDATA[<size="30"><color=#ffa500>SaveTransformerMod</color></size>
+	  <![CDATA[<size="30"><color=#ffa500>BetterChatUI</color></size>
 <b>WARNING:</b> <color=#ff0000>This is a StationeersLaunchPad Plugin Mod. It requires BepInEx to be installed with the StationeersLaunchPad plugin.</color>
 <br>
-</b> <color=#FFA500>Open UI with ctrl + t!</color>
-<b>Transform Your old Saves with ease!</b>
-Brought to you by JacksonTheMaster, this mod resurrects your old Stationeers saves! With the game’s new terrain system leaving old files behind, this tool, originally born as a web based tool with API [](https://sst.jxsn.dev/) lets you migrate saves, shift entire bases, or move structures in the new save system, all with X, Y, Z offsets.
-<br>
-<b>Tips:</b> Use a GPS Tablet to perfect your offsets—trial and error makes it shine!
-<br>
-<b>Fixes:</b> Underground bases? Raise Y! Floating? Lower Y! Errors? Check logs, try again! (F3 > logtoclipboard)
+<b>BetterChatUI</b>
+Brought to you by JacksonTheMaster
 <br>
 ]]>
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
-    [h3]Version 0.2.5116.23239.2:[/h3]
+    [h3]Version 1.0.0:[/h3]
     [list]
-    [*]Updated TypesToRemove to NOT include HumanSaveData when transforming dotsave to dotsave
+    [*]Initial release
     [/list]
   </ChangeLog>
   <WorkshopHandle>3538492515</WorkshopHandle>

@@ -5,7 +5,7 @@ using HarmonyLib;
 using StationeersMods.Interface;
 using UnityEngine;
 using UnityEngine.Rendering;
-namespace SaveTransformer.Mod
+namespace ChatUI.Mod
 {
     [HarmonyPatch]
     public class PrefabPatch
