@@ -1,68 +1,38 @@
-﻿// Important: Add this using for the InventoryManager namespace
-using Assets.Scripts.Inventory;
-using Assets.Scripts.Networking;
+﻿using Assets.Scripts.Networking;
 using Assets.Scripts.Util;
 using HarmonyLib;
 using SaveTransformer.Mod;
 using StationeersMods.Interface;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
-[StationeersMod("SaveTransformerMod", "SaveTransformerMod", "0.2.0")]
-public class SaveTransformerMod : ModBehaviour
+[StationeersMod("BetterChatUI", "BetterChatUI", "0.2.0")]
+public class BetterChatUI : ModBehaviour
 {
-    public bool isUIOpen = false;
     private new ContentHandler contentHandler;
+    private SaveTransformerUI chatUI;
 
     public override void OnLoaded(ContentHandler contentHandler)
     {
-        UnityEngine.Debug.Log("SaveTransformerMod says: Hello World!");
-
+        UnityEngine.Debug.Log("BetterChatUI says: Hello World!");
         this.contentHandler = contentHandler;
 
-        // Initialize Harmony for patching
-        Harmony harmony = new Harmony("SaveTransformerMod");
-        harmony.PatchAll();                     // This will now also patch our new patch class
+        Harmony harmony = new Harmony("BetterChatUI");
+        harmony.PatchAll();
+
         PrefabPatch.prefabs = contentHandler.prefabs;
+        UnityEngine.Debug.Log("BetterChatUI Loaded with " + contentHandler.prefabs.Count + " prefab(s)");
 
-        UnityEngine.Debug.Log("SaveTransformerMod Loaded with " + contentHandler.prefabs.Count + " prefab(s)");
-
-        // Add a MonoBehaviour to handle input and UI management
-        var gameObject = new GameObject("SaveTransformerModUI");
-        gameObject.AddComponent<SaveTransformerUI>().Initialize(this, contentHandler);
+        // Create persistent manager
+        var gameObject = new GameObject("BetterChatUIUI");
+        chatUI = gameObject.AddComponent<SaveTransformerUI>();
+        chatUI.Initialize(this, contentHandler);
         UnityEngine.Object.DontDestroyOnLoad(gameObject);
-    }
-
-    public void CheckInput()
-    {
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.T))
-        {
-            ToggleUI();
-        }
-    }
-
-    public void ToggleUI()
-    {
-        isUIOpen = !isUIOpen;
-        UnityEngine.Debug.Log($"SaveTransformerMod UI {(isUIOpen ? "opened" : "closed")}");
-    }
-
-    public void OpenUI()
-    {
-        isUIOpen = true;
-        UnityEngine.Debug.Log("SaveTransformerMod UI opened");
-    }
-
-    public void CloseUI()
-    {
-        isUIOpen = false;
-        UnityEngine.Debug.Log("SaveTransformerMod UI closed");
-        // uiInstance?.SetActive(false);
     }
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-// NEW: Patch ChatMessage.PrintToConsole() — this catches ALL messages on ALL clients
+// Patch: Catch every chat message
 // ────────────────────────────────────────────────────────────────────────────────
 [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.PrintToConsole))]
 public static class ChatMessagePrintPatch
@@ -70,64 +40,89 @@ public static class ChatMessagePrintPatch
     [HarmonyPostfix]
     static void Postfix(ChatMessage __instance)
     {
-        // Get the mod instance
-        var mod = Object.FindObjectOfType<SaveTransformerMod>();
-        if (mod != null)
+        var ui = Object.FindObjectOfType<SaveTransformerUI>();
+        if (ui != null)
         {
-            // Toggle UI when ANY chat message prints to console
-            mod.ToggleUI();  // or mod.isUIOpen = true; to only open
-            UnityEngine.Debug.Log($"[ChatPatch] Caught message: {__instance.DisplayName}: {__instance.ChatText}");
+            string formatted = $"<color=#FFAA00>{__instance.DisplayName}</color>: {__instance.ChatText}";
+            ui.AddChatMessage(formatted);
+            UnityEngine.Debug.Log($"[ChatPatch] Added message: {formatted}");
         }
     }
 }
 
 public class SaveTransformerUI : MonoBehaviour
 {
-    private SaveTransformerMod mod;
     private ContentHandler contentHandler;
-    private GameObject uiPrefab;
-    private GameObject uiInstance;
-    private Canvas canvas;
+    private GameObject messagePrefab;
 
-    // UI Components - assign these in the prefab or find them by name
-    private Button closeButton;
-    private Text screenSizeText;
-    private Text timeText;
-
-    public void Initialize(SaveTransformerMod modInstance, ContentHandler content)
+    public void Initialize(BetterChatUI modInstance, ContentHandler content)
     {
-        mod = modInstance;
         contentHandler = content;
-        LoadUIPrefab();
+        LoadMessagePrefab();
+    }
 
-        // Optional: Create the actual UI instance right away (or on first toggle)
-        if (uiPrefab != null)
+    private void LoadMessagePrefab()
+    {
+        // Load the per-message prefab (Canvas → Panel → TMP Text)
+        messagePrefab = contentHandler.prefabs.ReverseFind(p => p.name == "ChatMessage");
+        if (messagePrefab == null)
         {
-            uiInstance = Object.Instantiate(uiPrefab, transform);
-            uiInstance.SetActive(false); // start closed
-            canvas = uiInstance.GetComponent<Canvas>();
-            // Find your buttons/texts here if needed
-            // closeButton = uiInstance.transform.Find("CloseButton")?.GetComponent<Button>();
+            Debug.LogError("BetterChatUI: Could not find prefab 'ChatMessage'!");
+        }
+        else
+        {
+            Debug.Log("BetterChatUI: ChatMessage prefab loaded successfully");
         }
     }
 
-    private void LoadUIPrefab()
+    public void AddChatMessage(string messageText)
     {
-        uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "SaveTransformerUI");
-        if (uiPrefab == null)
-        {
-            UnityEngine.Debug.LogWarning("SaveTransformerMod: UI prefab 'SaveTransformerUI' not found.");
+        if (messagePrefab == null)
             return;
+
+        // Instantiate a FULL new Canvas per message
+        GameObject msgCanvas = Object.Instantiate(messagePrefab);
+
+        // Optional: Make it child of this manager (so it gets destroyed with mod unload)
+        msgCanvas.transform.SetParent(transform);
+
+        // Find the TMP Text inside
+        var tmpText = msgCanvas.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmpText != null)
+        {
+            tmpText.text = messageText;
+            tmpText.ForceMeshUpdate();
         }
-        UnityEngine.Debug.Log("SaveTransformerMod: UI prefab loaded successfully");
+        else
+        {
+            Debug.LogWarning("No TextMeshProUGUI found in ChatMessageLine prefab!");
+        }
+
+        // Auto-fade and destroy after 10 seconds
+        StartCoroutine(FadeAndDestroy(msgCanvas, 10f));
     }
 
-    // Optional: If you want to handle UI visibility centrally
-    private void Update()
+    private System.Collections.IEnumerator FadeAndDestroy(GameObject msgObj, float delay)
     {
-        if (uiInstance != null)
+        // Wait display time
+        yield return new WaitForSeconds(delay);
+
+        // Get or add CanvasGroup for fading
+        var canvasGroup = msgObj.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = msgObj.AddComponent<CanvasGroup>();
+
+        // Fade out over 1 second
+        float fadeTime = 1f;
+        float timer = 0f;
+        while (timer < fadeTime)
         {
-            uiInstance.SetActive(mod.isUIOpen);
+            timer += Time.deltaTime;
+            canvasGroup.alpha = 1f - (timer / fadeTime);
+            yield return null;
         }
+
+        // Destroy the entire message canvas
+        Object.Destroy(msgObj);
     }
 }
