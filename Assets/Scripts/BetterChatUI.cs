@@ -2,59 +2,79 @@
 using Assets.Scripts.Util;
 using BepInEx.Configuration;
 using HarmonyLib;
-using ChatUI.Mod;
 using StationeersMods.Interface;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-[StationeersMod("BetterChatUI", "BetterChatUI", "1.0.0")]
+[StationeersMod("BetterChatUI", "BetterChatUI", "1.0.1")]  // bump version for tracking
 public class BetterChatUI : ModBehaviour
 {
     private ConfigEntry<string> chatStyleConfig;
     private ConfigEntry<float> fadeDurationConfig;
 
-    private new ContentHandler contentHandler;
-    private ChatUIController chatUI;
+    private ContentHandler contentHandler;
+    public static ChatUIController Instance { get; private set; }  // ← static singleton reference
 
     public override void OnLoaded(ContentHandler contentHandler)
     {
+        this.contentHandler = contentHandler;
+
         chatStyleConfig = Config.Bind(
-            "Game Restart Required",
+            "General",
             "ChatStyle",
             "TopLeftNewestTop",
             new ConfigDescription(
-                "Which chat prefab/style to use (TopLeftNewestTop, TopLeftNewestBottom, TopRightNewestTop, TopRightNewestBottom, TopLeftNewestTopClearBackground)",
+                "Chat prefab/style to use",
                 new AcceptableValueList<string>("TopLeftNewestTop", "TopLeftNewestBottom", "TopRightNewestTop", "TopRightNewestBottom", "TopLeftNewestTopClearBackground")
             )
         );
 
         fadeDurationConfig = Config.Bind(
-            "Game Restart Required",
+            "General",
             "MessageDuration",
             10f,
-            new ConfigDescription("How long each message stays visible before fading (seconds)", new AcceptableValueRange<float>(3f, 30f))
+            new ConfigDescription("Message visible time before fade (seconds)", new AcceptableValueRange<float>(3f, 30f))
         );
 
-        UnityEngine.Debug.Log($"BetterChatUI loaded with chat style: {chatStyleConfig.Value}, fade duration: {fadeDurationConfig.Value}s");
-
-        this.contentHandler = contentHandler;
+        Debug.Log($"BetterChatUI v1.0.1 loaded | Style: {chatStyleConfig.Value} | Duration: {fadeDurationConfig.Value}s");
 
         Harmony harmony = new Harmony("BetterChatUI");
         harmony.PatchAll();
 
-        PrefabPatch.prefabs = contentHandler.prefabs;
-        UnityEngine.Debug.Log("BetterChatUI Loaded " + contentHandler.prefabs.Count + " prefab(s)");
+        Debug.Log("SafeMode enabled → delaying UI creation until scene load");
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
-        // Create persistent UI manager
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (Instance == null)
+        {
+            CreateChatUI();
+        }
+    }
+
+    private void CreateChatUI()
+    {
+        if (Instance != null) return;  // already created
+
         var gameObject = new GameObject("BetterChatUIController");
-        chatUI = gameObject.AddComponent<ChatUIController>();
-        chatUI.Initialize(this, contentHandler, chatStyleConfig.Value, fadeDurationConfig.Value);
-        UnityEngine.Object.DontDestroyOnLoad(gameObject);
+        Instance = gameObject.AddComponent<ChatUIController>();
+        Instance.Initialize(this, contentHandler, chatStyleConfig.Value, fadeDurationConfig.Value);
+        Object.DontDestroyOnLoad(gameObject);
+
+        Debug.Log("BetterChatUI controller created successfully");
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-// Patch: Catch every chat message
+// Patch: Catch chat messages safely
 // ────────────────────────────────────────────────────────────────────────────────
 [HarmonyPatch(typeof(ChatMessage), nameof(ChatMessage.PrintToConsole))]
 public static class ChatMessagePrintPatch
@@ -62,18 +82,20 @@ public static class ChatMessagePrintPatch
     [HarmonyPostfix]
     static void Postfix(ChatMessage __instance)
     {
-        var ui = Object.FindObjectOfType<ChatUIController>();
-        if (ui != null)
+        if (BetterChatUI.Instance == null)
         {
-            string formatted = $"<color=#FFAA00>{__instance.DisplayName}</color>: {__instance.ChatText}";
-            ui.AddMessage(formatted);
-            UnityEngine.Debug.Log($"[ChatPatch] Added: {formatted}");
+            return;
         }
+
+        string formatted = $"<color=#FFAA00>{__instance.DisplayName}</color>: {__instance.ChatText}";
+        BetterChatUI.Instance.AddMessage(formatted);
+
+        // Debug.Log($"[BetterChatUI] Added: {formatted}");
     }
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-// Main UI Controller (manages the 5 panels)
+// UI Controller
 // ────────────────────────────────────────────────────────────────────────────────
 public class ChatUIController : MonoBehaviour
 {
@@ -86,51 +108,63 @@ public class ChatUIController : MonoBehaviour
     private CanvasGroup[] panelGroups = new CanvasGroup[5];
     private AudioSource notificationSound;
 
-    public void Initialize(BetterChatUI modInstance, ContentHandler content, string prefabName, float fadeTime)
+    private Coroutine[] fadeCoroutines = new Coroutine[5];
+
+    public void Initialize(BetterChatUI mod, ContentHandler content, string prefabName, float fadeTime)
     {
         contentHandler = content;
         currentPrefabName = prefabName;
         fadeDuration = fadeTime;
+
         LoadAndCreateUI();
     }
 
     private void LoadAndCreateUI()
     {
-        if (contentHandler == null)
+        if (contentHandler?.prefabs == null)
         {
-            Debug.LogError("BetterChatUI: contentHandler is null!");
+            Debug.LogError("BetterChatUI: contentHandler or prefabs list is null!");
             return;
         }
 
-        var uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == currentPrefabName);
+        // Safer prefab search: use FirstOrDefault + fallback chain
+        GameObject uiPrefab = contentHandler.prefabs
+            .FirstOrDefault(p => p != null && p.name == currentPrefabName);
+
         if (uiPrefab == null)
         {
-            Debug.LogError($"BetterChatUI: Could not find prefab '{currentPrefabName}'! Falling back to 'TopLeftNewestTop'");
-            uiPrefab = contentHandler.prefabs.ReverseFind(p => p.name == "TopLeftNewestTop");
-            if (uiPrefab == null)
-            {
-                Debug.LogError("BetterChatUI: No fallback prefab found either!");
-                return;
-            }
+            Debug.LogWarning($"BetterChatUI: Prefab '{currentPrefabName}' not found. Trying fallback...");
+            uiPrefab = contentHandler.prefabs
+                .FirstOrDefault(p => p != null && p.name == "TopLeftNewestTop");
+        }
+
+        if (uiPrefab == null)
+        {
+            Debug.LogError("BetterChatUI: No valid chat prefab found — UI disabled.");
+            return;
         }
 
         uiInstance = Object.Instantiate(uiPrefab, transform);
+        if (uiInstance == null)
+        {
+            Debug.LogError("BetterChatUI: Instantiate returned null!");
+            return;
+        }
         uiInstance.SetActive(true);
 
-        notificationSound = uiInstance.transform.Find("Sound")?.GetComponent<AudioSource>();
+        // Sound (optional)
+        var soundTransform = uiInstance.transform.Find("Sound");
+        notificationSound = soundTransform?.GetComponent<AudioSource>();
         if (notificationSound == null)
         {
-            Debug.LogWarning("BetterChatUI: AudioSource 'Sound' not found in prefab root! No notification sound will play.");
-        }
-        else
-        {
-            Debug.Log("BetterChatUI: Notification sound loaded successfully.");
+            Debug.LogWarning("BetterChatUI: No 'Sound' AudioSource found in prefab.");
         }
 
+        // Canvas & panels
         var canvasTransform = uiInstance.transform.Find("Canvas");
         if (canvasTransform == null)
         {
-            Debug.LogError("BetterChatUI: Could not find 'Canvas' under root!");
+            Debug.LogError("BetterChatUI: 'Canvas' not found in instantiated prefab!");
             return;
         }
 
@@ -140,29 +174,33 @@ public class ChatUIController : MonoBehaviour
             var panel = canvasTransform.Find($"Panel{panelNum}");
             if (panel == null)
             {
-                Debug.LogWarning($"Panel{panelNum} not found!");
+                Debug.LogWarning($"Panel{panelNum} missing — skipping.");
                 continue;
             }
 
             panelGroups[i] = panel.GetComponent<CanvasGroup>() ?? panel.gameObject.AddComponent<CanvasGroup>();
 
-            var text = panel.Find($"Message{panelNum}")?.GetComponent<TextMeshProUGUI>();
-            if (text != null)
+            var textObj = panel.Find($"Message{panelNum}");
+            messageTexts[i] = textObj?.GetComponent<TextMeshProUGUI>();
+            if (messageTexts[i] == null)
             {
-                messageTexts[i] = text;
-                text.text = "";
-                panel.gameObject.SetActive(false);
+                Debug.LogWarning($"Message{panelNum} TextMeshProUGUI missing.");
             }
             else
             {
-                Debug.LogWarning($"Message{panelNum} not found!");
+                messageTexts[i].text = "";
+                panel.gameObject.SetActive(false);
             }
         }
+
+        Debug.Log("BetterChatUI: UI setup complete.");
     }
 
     public void AddMessage(string message)
     {
-        // Stop all ongoing fade coroutines to prevent conflicts
+        if (messageTexts[0] == null) return;  // UI not ready
+
+        // Stop existing fades safely
         for (int i = 0; i < 5; i++)
         {
             if (fadeCoroutines[i] != null)
@@ -172,22 +210,27 @@ public class ChatUIController : MonoBehaviour
             }
         }
 
-        // Shift messages down (text only)
+        // Shift messages (with null guard)
         for (int i = 4; i > 0; i--)
         {
-            messageTexts[i].text = messageTexts[i - 1].text;
+            if (messageTexts[i] != null && messageTexts[i - 1] != null)
+            {
+                messageTexts[i].text = messageTexts[i - 1].text;
+            }
         }
 
-        // Add new message to top (Panel1 / index 0)
-        messageTexts[0].text = message;
+        // New message at top
+        if (messageTexts[0] != null)
+        {
+            messageTexts[0].text = message;
+        }
 
-        // Play the notification sound if it exists
+        // Sound
         if (notificationSound != null && notificationSound.clip != null)
         {
             notificationSound.Play();
         }
 
-        // Update visibility and start fresh fades for all visible panels
         UpdateDisplayWithFreshFades();
     }
 
@@ -195,13 +238,14 @@ public class ChatUIController : MonoBehaviour
     {
         for (int i = 0; i < 5; i++)
         {
+            if (messageTexts[i] == null || panelGroups[i] == null) continue;
+
             string msg = messageTexts[i].text;
 
             if (!string.IsNullOrEmpty(msg))
             {
                 panelGroups[i].alpha = 1f;
                 panelGroups[i].gameObject.SetActive(true);
-
                 fadeCoroutines[i] = StartCoroutine(FadePanel(i, fadeDuration));
             }
             else
@@ -216,7 +260,9 @@ public class ChatUIController : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        CanvasGroup group = panelGroups[panelIndex];
+        var group = panelGroups[panelIndex];
+        if (group == null) yield break;
+
         float fadeTime = 1f;
         float timer = 0f;
 
@@ -228,9 +274,9 @@ public class ChatUIController : MonoBehaviour
         }
 
         group.gameObject.SetActive(false);
-        messageTexts[panelIndex].text = "";
+        if (messageTexts[panelIndex] != null)
+            messageTexts[panelIndex].text = "";
+
         fadeCoroutines[panelIndex] = null;
     }
-
-    private Coroutine[] fadeCoroutines = new Coroutine[5];
 }
