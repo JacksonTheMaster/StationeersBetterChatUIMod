@@ -1,5 +1,7 @@
 Better Chat UI – Modern & pretty ingame Chat
 
+This mod was built on the Base of my https://steamcommunity.com/sharedfiles/filedetails/?id=3538492515 - forgot to clean the git history..
+
 A client-side BepInEx mod that overhauls the default tiny, short-lived chat messages in the console with a beautiful, readable UI.
 
 You will get a nullref error in the main menu atm, but it can safely be ignored and everything works as intended. Will fix this eventually.
