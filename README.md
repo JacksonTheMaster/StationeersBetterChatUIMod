@@ -1,18 +1,38 @@
-Run the init script first
+Better Chat UI – Modern & pretty ingame Chat
 
-init.bat for Windows
+A client-side BepInEx mod that overhauls the default tiny, short-lived chat messages in the console with a beautiful, readable UI.
 
-init.sh for Linux
+You will get a nullref error in the main menu atm, but it can safely be ignored and everything works as intended. Will fix this eventually.
 
-This will pre-initialize the project files with your own mod name and namespace.
+Features
+5-message scrolling display (newest on top by default)
+Player names in bright orange, messages fade out smoothly after 10 seconds (configurable)
+Multiple styles to choose from: Top-Left, Top-Right, Clear Background, etc.
+Notification sound on new messages
+Configurable via BepInEx config file / Workshop Menu ingame
+Fully clientside — only you need the mod
 
-Keep the mod naming to values like: ExampleMod, TimeDateMod, etc. following Class name conventions.
-https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/names-of-classes-structs-and-interfaces
+Why this mod?
+The default chat is hard to read: tiny blue text in the bottom-left corner that disappears quickly, and speech bubbles only visible when you're right next to someone. This mod fixes that — chat is now always visible, easy to read, and looks great!
 
-Keep the namespace to values like: Creator.Example, Jixxed.TimeDate, etc. following namespace conventions.
-https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/names-of-namespaces
+Installation
+Install BepInEx + StationeersLaunchPad (required for Stationeers mods)
+Subscribe to the Mod in the Workshop
+Launch the game — the chat UI appears automatically when messages are sent
 
-A unique namespace prevent conflicts with other mods and the game itself.
+Configuration
+Default ChatStyle = TopLeftNewestTop
 
-After that follow instructions here:
-https://github.com/ilodev/StationeersMods/blob/main/doc/CREATE-MOD-UNITY.md
+Available styles:
+- TopLeftNewestTop
+- TopLeftNewestBottom
+- TopRightNewestTop
+- TopRightNewestBottom
+- TopLeftNewestTopClearBackground
+
+Known Limitations
+No scrollable history (yet) — only shows the last 5 messages
+
+Feedback & Support
+Love it? Hate it? Want more styles or features?
+Join the SSUI Discord: https://discord.gg/8n3vN92MyJ and let me know - or ping me somewhere else!
