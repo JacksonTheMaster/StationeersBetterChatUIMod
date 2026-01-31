@@ -1,5 +1,8 @@
 Better Chat UI – Modern & pretty ingame Chat
 
+<img width="2864" height="1613" alt="image" src="https://github.com/user-attachments/assets/f4dffabe-efae-4579-85b2-ea01606be975" />
+
+
 This mod was built on the Base of my https://steamcommunity.com/sharedfiles/filedetails/?id=3538492515 - forgot to clean the git history..
 
 A client-side BepInEx mod that overhauls the default tiny, short-lived chat messages in the console with a beautiful, readable UI.
