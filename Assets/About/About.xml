@@ -2,7 +2,7 @@
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Name>BetterChatUI [StationeersLaunchPad]</Name>
   <Author>JXSN</Author>
-  <Version>1.0.0</Version>
+  <Version>1.0.2</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>
 	  [h1]BetterChatUI[/h1]
@@ -24,7 +24,11 @@ Brought to you by JacksonTheMaster
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
-    [h3]Version 1.0.0:[/h3]
+    [h3]Version 1.0.2:[/h3]
+    [list]
+    [*]Fixed NullRef when the Prefix method tried to iterate over ChatUI.Mod.PrefabPatch.prefabs during Prefab.LoadAll() at startup
+    [/list]
+    [h3]Version 1.0.1:[/h3]
     [list]
     [*]Initial release
     [/list]
