@@ -31,6 +31,10 @@ Available styles:
 - TopRightNewestTop
 - TopRightNewestBottom
 - TopLeftNewestTopClearBackground
+- BottomLeftNewestTop
+- BottomLeftNewestBottom
+- BottomRightNewestTop
+- BottomRightNewestBottom
 
 [h2]Known Limitations[/h2]
 [list]
@@ -42,4 +46,4 @@ Love it? Hate it? Want more styles or features?
 Join the SSUI Discord: https://discord.gg/8n3vN92MyJ and let me know - or ping me somewhere else!
 
 [h3]Created by JacksonTheMaster[/h3]
-[h3]Latest test: January 30, 2026[/h3]
+[h3]Latest test: Febuary 21, 2026[/h3]
