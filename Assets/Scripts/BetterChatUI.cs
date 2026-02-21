@@ -8,7 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[StationeersMod("BetterChatUI", "BetterChatUI", "1.0.3")]  // bump version for tracking
+[StationeersMod("BetterChatUI", "BetterChatUI", "1.0.4")]  // bump version for tracking
 public class BetterChatUI : ModBehaviour
 {
     private ConfigEntry<string> chatStyleConfig;
@@ -48,7 +48,7 @@ public class BetterChatUI : ModBehaviour
             new ConfigDescription("Message visible time before fade (seconds)", new AcceptableValueRange<float>(3f, 30f))
         );
 
-        Debug.Log($"BetterChatUI v1.0.3 loaded | Style: {chatStyleConfig.Value} | Duration: {fadeDurationConfig.Value}s");
+        Debug.Log($"BetterChatUI v1.0.4 loaded | Style: {chatStyleConfig.Value} | Duration: {fadeDurationConfig.Value}s");
 
         // Set the static prefabs for the patch
         ChatUI.Mod.PrefabPatch.prefabs = contentHandler.prefabs;
